@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
           <h2 style="color: #333;">New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Sender &aposts Name:</strong> ${name}</p>
           <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
           <p><strong>Subject:</strong> ${subject || "N/A"}</p>
           <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;" />
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     };
 
     // 3. Dispatch Email
-    transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
     return NextResponse.json(
       { success: true, message: "Your message has been sent successfully!" },
