@@ -21,7 +21,7 @@ const links = [
   { name: "services", path: "/services" },
   { name: "pump stations", path: "/pumpStations" },
   { name: "Projects", path: "/projects" },
-  { name: "application form", path: "/applicationForm" },
+  // { name: "application form", path: "/applicationForm" }, // application form is comment to prevent visitor access ((mvp))
   { name: "contact", path: "/contact" },
   { name: "request", path: "/request" },
 ];
@@ -89,13 +89,14 @@ const MobileNav = () => {
           </ul>
           {/* login link */}
           <div className="mt-10">
-            <Link
+            {/* register link is commenteed out */}
+            {/* <Link
               prefetch={false}
               href="/myAMSU"
               className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-light rounded-md text-white bg-transparent transition-colors duration-200 shadow-sm"
             >
               Login / Register
-            </Link>
+            </Link> */}
           </div>
           {/* Social Icons */}
           <div className="mt-10">
