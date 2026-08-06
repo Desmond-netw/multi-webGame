@@ -14,12 +14,18 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    // verify
+    try {
+      await transporter.verify();
+      console.log("Server is ready to take our messages");
+    } catch (err) {
+      console.error("Verification failed:", err);
+    }
 
     // define email options
     // 2. Define Email Options
     const mailOptions: Mail.Options = {
       from: `"${name}" <${process.env.SMTP_USER}>`, // Recommended format to avoid spam filters
-      replyTo: email, // Direct replies back to the user's email address
       to: process.env.SMTP_USER,
       subject: `[Contact Form] ${subject || "New Inquiry from " + name}`,
       text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
@@ -37,13 +43,13 @@ export async function POST(request: Request) {
     };
 
     // 3. Dispatch Email
-    await transporter.sendMail(mailOptions);
+    transporter.sendMail(mailOptions);
 
     return NextResponse.json(
       { success: true, message: "Your message has been sent successfully!" },
       { status: 200 },
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Nodemailer API Error:", error);
     return NextResponse.json(
       { error: "Failed to send message. Please try" },
