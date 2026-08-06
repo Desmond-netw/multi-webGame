@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import {
   Box,
@@ -18,6 +19,73 @@ import { ImLocation2 } from "react-icons/im";
 import Container from "../Container";
 
 const ContactMapSection = () => {
+  // --- Form & Status States ---
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [responseMsg, setResponseMsg] = useState("");
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("loading");
+    setResponseMsg("");
+
+    try {
+      // Combines phone number into message context payload
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: `Phone: ${formData.phone || "N/A"}\n\n${formData.message}`,
+      };
+
+      const res = await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus("success");
+        setResponseMsg(
+          data.message || "Your message has been sent successfully!",
+        );
+        setFormData({
+          name: "",
+          phone: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        setStatus("error");
+        setResponseMsg(data.error || "Failed to send message.");
+      }
+    } catch (err) {
+      setStatus("error");
+      // log the error for debugging
+      // eslint-disable-next-line no-console
+      console.error(err);
+      setResponseMsg("An unexpected error occurred. Please try again.");
+    }
+  };
+
   return (
     <Container>
       <Grid
@@ -119,12 +187,6 @@ const ContactMapSection = () => {
                 className="w-full h-auto object-cover rounded-md shadow-md"
               />
 
-              {/* 
-                Overlay Cards: 
-                - On mobile: They sit below the image in a flex column (gap-4)
-                - On md screens+: They move back into absolute positions
-              */}
-
               {/* Card 1 */}
               <div className="md:absolute md:top-4 md:left-4 bg-white bg-opacity-90 p-3 rounded-md shadow-lg md:max-w-[200px] lg:max-w-xs ">
                 <p className="text-sm text-gray-800">
@@ -149,9 +211,10 @@ const ContactMapSection = () => {
             </div>
           </Flex>
         </Box>
-        {/*-- Temporary Contact Form  */}
-        <Box maxWidth="600px  rounded-sm px-6">
-          <div className=" w-full h-full border border-brand_1-100 box-border shadow-md p-6 rounded-md">
+
+        {/*-- Functional Contact Form  */}
+        <Box maxWidth="600px" className="rounded-sm px-6">
+          <div className="w-full h-full border border-brand_1-100 box-border shadow-md p-6 rounded-md">
             <Heading size={{ initial: "2", md: "4" }} className="mb-4">
               Send Us a Message
             </Heading>
@@ -159,35 +222,59 @@ const ContactMapSection = () => {
               Have any questions or inquiries? Fill out the form below and
               we&apos;ll get back to you as soon as possible.
             </Text>
-            <form className="flex flex-col gap-4 py-4">
+
+            {/* Response Alerts */}
+            {status === "success" && (
+              <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md text-sm">
+                {responseMsg}
+              </div>
+            )}
+            {status === "error" && (
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-sm">
+                {responseMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-4">
               <Flex direction="column" gap="2">
                 {/* --Name -- */}
-                <Box className=" min-w-[200px] lg:w-full">
+                <Box className="min-w-[200px] lg:w-full">
                   <Text as="label" size="2" weight="medium" className="mb-1">
                     Name
                   </Text>
                   <TextField.Root
+                    required
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     size={{ initial: "1", md: "2", lg: "3" }}
                     placeholder="Full Name"
                   />
                 </Box>
                 {/* --Phone -- */}
-                <Box className=" min-w-[200px] lg:w-full">
+                <Box className="min-w-[200px] lg:w-full">
                   <Text as="label" size="2" weight="medium" className="mb-1">
                     Phone
                   </Text>
                   <TextField.Root
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     size={{ initial: "1", md: "2", lg: "3" }}
                     placeholder="Phone Number"
                   />
                 </Box>
                 {/* --Email -- */}
-                <Box className=" min-w-[200px] lg:w-full">
+                <Box className="min-w-[200px] lg:w-full">
                   <Text as="label" size="2" weight="medium" className="mb-1">
                     Email
                   </Text>
                   <TextField.Root
+                    required
                     type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     size={{ initial: "1", md: "2", lg: "3" }}
                     placeholder="Email Address"
                   />
@@ -198,17 +285,24 @@ const ContactMapSection = () => {
                     Subject
                   </Text>
                   <TextField.Root
-                    type="text" // Fixed from "email"
+                    type="text"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
                     size={{ initial: "1", md: "2", lg: "3" }}
                     placeholder="Subject: Inquiry about services"
                   />
                 </Box>
                 {/* --Message -- */}
-                <Box className=" min-w-[200px] lg:w-full">
+                <Box className="min-w-[200px] lg:w-full">
                   <Text as="label" size="2" weight="medium" className="mb-1">
                     Message
                   </Text>
                   <TextArea
+                    required
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
                     size={{ initial: "1", md: "2", lg: "3" }}
                     placeholder="Your Message"
                   />
@@ -216,16 +310,18 @@ const ContactMapSection = () => {
               </Flex>
               <Flex align="center" justify="center" mt="4">
                 <Button
+                  type="submit"
+                  disabled={status === "loading"}
                   color="cyan"
                   variant="solid"
                   size="4"
                   className="cursor-pointer"
                 >
-                  Send Message
+                  {status === "loading" ? "Sending..." : "Send Message"}
                 </Button>
               </Flex>
-            </form>{" "}
-            {/*-- Form fields End  here --*/}
+            </form>
+            {/*-- Form fields End here --*/}
           </div>
         </Box>
       </Grid>
