@@ -51,7 +51,7 @@ const LoginPage = () => {
             {/* Email / Username */}
             <Clerk.Field name="identifier">
               <Clerk.Label className="text-sm font-medium text-slate-700">
-                Email or Username
+                Username
               </Clerk.Label>
               <Clerk.Input
                 type="text"
