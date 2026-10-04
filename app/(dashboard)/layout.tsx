@@ -15,6 +15,7 @@ export default async function DashboardLayout({
   // getting authenticated user
   const user = await currentUser();
   const { userId } = await auth();
+  await auth.protect();
 
   if (!userId) {
     redirect("/sign-in");
